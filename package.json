@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@sakitam-gis/mapbox-wind": "^1.1.2",
     "@types/leaflet": "^1.9.6",
     "@types/mapbox-gl": "^2.7.15",
     "leaflet": "^1.9.4",
@@ -18,7 +17,6 @@
     "next": "13.5.4",
     "react": "^18",
     "react-dom": "^18",
-    "react-leaflet": "^4.2.1",
     "twgl.js": "^5.5.3"
   },
   "devDependencies": {
