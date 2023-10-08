@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+<body>
+<canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+<script src="lineHeight.js"></script>
+
+<script>
+    const coord1 = [11, 150];
+    const coord2 = [15, 275];
+
+    const dict = {
+        "x": [
+            [10, 12, 14, 16],
+            [10, 12, 14, 16],
+            [10, 12, 14, 16]]
+        , "y": [
+            [100, 100, 100, 100],
+            [200, 200, 200, 200],
+            [300, 300, 300, 300]],
+        "waveHeight": [
+            [1, 2, 3, 4],
+            [3, 3, 3, 4],
+            [5, 4, 3, 4]
+        ]
+    };
+
+    let crossSectionLine = getCrossSection(dict, coord1, coord2);
+    // console.log(crossSectionLine)
+
+    new Chart("myChart", {
+        type: "line",
+        data: {
+            labels: crossSectionLine.data,
+            datasets: [{
+                data: crossSectionLine.pos,
+                borderColor: "blue",
+                fill: false
+            }]
+        },
+        options: {
+            legend: {display: false}
+        }
+    });
+</script>

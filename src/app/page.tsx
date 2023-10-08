@@ -1,113 +1,186 @@
-import Image from 'next/image'
+"use client";
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+import "leaflet/dist/leaflet.css";
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+import L, {LatLngBoundsExpression, TileLayerOptions} from "leaflet";
+import "leaflet-velocity/dist/leaflet-velocity";
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+import React, {useEffect, useRef, useState} from "react";
+import {polygonArrowPoints} from "@/app/utils/Arrows";
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
+export default function Page() {
+    const mapContainer = useRef<HTMLDivElement | null>(null);
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+    let latCentre = 22.21997;
+    let lngCentre = 114.227654;
+
+    let arrowSize = 0.00007;
+    let radiusSize = 0.00025;
+
+    let defZoom = 13;
+
+    useEffect(() => {
+        if (!mapContainer.current)
+            return;
+        onLoad();
+    }, [mapContainer.current]);
+    const onLoad = async () => {
+        const tiles = L.tileLayer(
+            "https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={access_token}",
+            {
+                // id: "mapbox/streets-v11",
+                id: "mapbox/dark-v11",
+                access_token: "pk.eyJ1IjoianVzdHVzaXAiLCJhIjoiY2xuZWEzZWplMGJ6cTJqbWs1b3F4Z2NueSJ9.gVm5YadStrOim4uYIFkU6Q",
+            }
+        );
+
+        const velocityDataRes = await fetch("/data/output/wave_data_x1.grib.json");
+        const velocityData = await velocityDataRes.json();
+
+        // @ts-ignore
+        const velocityLayer = L.velocityLayer({
+            displayValues: false,
+            data: velocityData,
+            colorScale: [
+                "rgb(36,104, 180)",
+                "rgb(60,157, 194)",
+                "rgb(128,205,193)",
+                "rgb(151,218,168)",
+                "rgb(198,231,181)",
+                "rgb(255,238,159)",
+                "rgb(252,217,125)",
+                "rgb(255,182,100)",
+                "rgb(252,150,75)",
+                "rgb(250,112,52)",
+                "rgb(245,64,32)",
+                "rgb(237,45,28)",
+                "rgb(220,24,32)",
+                "rgb(180,0,35)"
+            ],
+            maxVelocity: 12,
+            velocityScale: .005
+        });
+
+        const bounds: LatLngBoundsExpression = new L.LatLngBounds(
+            [
+                velocityData[0].header.la1,
+                velocityData[0].header.lo1,
+            ],
+            [
+                velocityData[0].header.la2,
+                velocityData[0].header.lo2
+            ]
+        );
+        const boundingBox = L.rectangle(bounds.pad(.01), {color: "#777", fillOpacity: 0, weight: 1});
+
+        const map = L.map(mapContainer.current, {
+            center: new L.LatLng(latCentre, lngCentre),
+            zoom: defZoom,
+            minZoom: 10,
+            zoomControl: false,
+            layers: [tiles, velocityLayer, boundingBox]
+        });
+
+        map.fitBounds(bounds.pad(.05));
+        map.setMaxBounds(bounds.pad(.1));
+
+        let waveArrows: L.Polygon[] = [];
+
+        async function loadWaveData(mapZoomLevel: number) {
+            let scaleFactor = 1; // File to load
+
+            switch (Math.min(16, Math.max(13, mapZoomLevel))) { // Clamp map zoom level to 13 - 16
+                case 13:
+                    scaleFactor = 8;
+                    break;
+                case 14:
+                    scaleFactor = 4;
+                    break;
+                case 15:
+                    scaleFactor = 2;
+                    break;
+                case 16:
+                    scaleFactor = 1;
+                    break;
+            }
+
+            const dataFileURL = `/data/output/wave_data_x${scaleFactor}.json`;
+            console.log(dataFileURL);
+
+            const dataReq = await fetch(dataFileURL);
+            const data = await dataReq.json();
+
+            for (let i = 0; i < data.lng.length; i++) {
+                for (let j = 0; j < data.lng[0].length; j++) {
+                    const lng = data.lng[i][j];
+                    const lat = data.lat[i][j];
+
+                    let dir = data.dir[i][j];
+                    if (dir == -180.0)
+                        continue;
+
+                    const polygon = L.polygon([
+                        polygonArrowPoints([lat, lng], arrowSize * scaleFactor, dir)
+                    ]);
+                    waveArrows.push(polygon);
+                    polygon.addTo(map);
+                }
+            }
+        }
+
+        // loadWaveData(13);
+
+        map.on("movestart", e => {
+            map.removeLayer(velocityLayer);
+        });
+        map.on("moveend", e => {
+            map.addLayer(velocityLayer);
+        });
+        map.on("zoomstart", e => {
+            map.removeLayer(velocityLayer);
+        });
+        map.on("zoomend", e => {
+            map.addLayer(velocityLayer);
+            const curZoomLevel = map.getZoom();
+            console.log(curZoomLevel);
+        });
+        var greenIcon = L.icon({
+            iconUrl: "pin.png",
+            shadowUrl: null,
+
+            iconSize: [10, 10], // size of the icon
+            iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
+        });
+        let vertices: L.Marker[] = [];
+        let edges: L.Polyline[] = [];
+        map.on("click", e => {
+            if (vertices.length == 2) {
+                for (const v of vertices)
+                    v.remove();
+                vertices = [];
+                for (const e of edges)
+                    e.remove();
+                edges = [];
+            }
+
+            const vertex = new L.marker(e.latlng, {icon: greenIcon}).addTo(map);
+            vertices.push(vertex);
+
+            if (vertices.length > 1) {
+                const edge = L.polyline(
+                    vertices.map(pt => pt.getLatLng()),
+                    {color: "#fff", weight: 1}
+                ).addTo(map);
+                edges.push(edge);
+            }
+        });
+    };
+
+    return <div className={"w-screen h-screen"}>
+        {/*<div className={"absolute z-50 w-64 h-full right-0 p-4 shadow bg-neutral-800 text-white text-sm"}>*/}
+        {/*    <div>Path Analysis</div>*/}
+        {/*</div>*/}
+        <div className={"absolute z-0 inset-0 w-screen h-screen"} ref={mapContainer}/>
+    </div>;
+};

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Quick Start - Leaflet</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script src="heatmap.js"></script>
+    <script src="leaflet-heatmap.js"></script>
+    <script src="geometry.js"></script>
+    <script src="lineHeight.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        .leaflet-container {
+            height: 600px;
+            width: 900px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<p id="disp">Zoom value: </p>
+<p id="res">Resolution: </p>
+
+<input type="file" id="fileInput" accept=".json">
+<button onclick="uploadFile()">Upload</button>
+<br>
+
+<select name="filter" id="filter" onchange="selectResolution(this)">
+    <option value=13>Default</option>
+    <option value=13>x1</option>
+    <option value=14>x2</option>
+    <option value=15>x4</option>
+    <option value=16>x8</option>
+</select>
+
+<div id="map" style="width: 600px; height: 400px; float: left; position: relative; top: 40px"></div>
+<canvas id="myChart"
+        style="width:100%; max-width:400px; float: left; position: relative; left: 40px; top: 40px"></canvas>
+<script type="text/javascript"></script>
+
+<script>
+    let init = true;
+    let filecount = 0;
+    let arrowSize = 0.00007;
+    let radiusSize = 0.00025;
+    let latCentre = 22.21997;
+    let lngCentre = 114.227654;
+    let defZoom = 13;
+    let maxZoom = 17;
+    let datas = ["0"];
+
+    // Definition of map and layers //
+    var tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+    });
+
+    var cfg = {
+        "radius": radiusSize, 		// radius should be small ONLY if scaleRadius is true (or small radius is intended)
+        "maxOpacity": .8, 			// scales the radius based on map zoom
+        "scaleRadius": true, 		// if set to false the heatmap uses the global maximum for colorization
+        "useLocalExtrema": true,	// if activated: uses the data maximum within the current map boundaries (there will always be a red spot with useLocalExtremas true)
+        latField: "lat", 			// which field name in your data represents the latitude - default "lat"
+        lngField: "lng",			// which field name in your data represents the longitude - default "lng"
+        valueField: "count"			// which field name in your data represents the data value - default "value"
+    };
+    var heatmapLayer = new HeatmapOverlay(cfg);
+
+    var map = L.map("map", {
+        center: new L.LatLng(latCentre, lngCentre),
+        zoom: defZoom,
+        layers: [tiles, heatmapLayer]
+    });
+
+    var popup = L.popup();
+    // -------------------------- //
+
+    // Storage of imported data //
+    let waveArrows = [];
+    var waveColours = {max: maxZoom, min: defZoom, data: []};
+    // ------------------------ //
+
+    // HTML elements //
+    var txt = document.getElementById("disp");
+
+    // ------------- //
+
+    function addArrowToMap(coords, rot, size) {
+        var polygon = L.polygon([
+            drawArrow(coords, size, rot)
+        ]);
+        waveArrows.push(polygon);
+        polygon.addTo(map);
+    }
+
+    function onMapClick(e) {
+        popup.setLatLng(e.latlng)
+            .setContent("You clicked the map at " + e.latlng.toString())
+            .openOn(map);
+    }
+
+    function loadData(zoom) {
+        let dataFile = "./numpyData_x8.json";
+        let aSize = arrowSize;
+        let rSize = radiusSize;
+        let defaultfile = true;
+        console.log("zoom", zoom);
+
+        if (zoom == 13) {
+            dataFile = "./numpyData_x8.json";
+            aSize *= 8;
+            rSize *= 8;
+        } else if (zoom == 14) {
+            dataFile = "./numpyData_x4.json";
+            aSize *= 4;
+            rSize *= 4;
+        } else if (zoom == 15) {
+            dataFile = "./numpyData_x2.json";
+            aSize *= 2;
+            rSize *= 2;
+        } else if (zoom == 16) {
+            dataFile = "./numpyData_x1.json";
+        } else defaultfile = false;
+        console.log(dataFile);
+
+        if (defaultfile) {
+            fetch(dataFile)
+                .then(response => response.json())
+                .then((data) => {
+                    let latSize = data.x.length;
+                    let longSize = data.x[0].length;
+                    console.log(data);
+
+                    for (let j = 0; j < latSize; j++) {
+                        for (let i = 0; i < longSize; i++) {
+                            let ang = data.waveDirection[j][i];
+                            if (ang != -180.0) {
+                                addArrowToMap([data.y[j][i], data.x[j][i]], ang, aSize);
+                            }
+                            let ht = data.waveHeight[j][i];
+                            if (ht != 0.0) {
+                                waveColours.data.push({lat: data.y[j][i], lng: data.x[j][i], count: ht});
+                            }
+                        }
+                    }
+
+                    cfg.radius = rSize;
+                    heatmapLayer.setData(waveColours);
+                });
+        } else {
+            //console.log(datas,zoom);
+            let data = JSON.parse(datas[zoom]);
+            console.log(data);
+            let latSize = data.x.length;
+            let longSize = data.x[0].length;
+
+            for (let j = 0; j < latSize; j++) {
+                for (let i = 0; i < longSize; i++) {
+                    let ang = data.waveDirection[j][i];
+                    if (ang != -180.0) {
+                        addArrowToMap([data.y[j][i], data.x[j][i]], ang, aSize);
+                    }
+                    let ht = data.waveHeight[j][i];
+                    if (ht != 0.0) {
+                        waveColours.data.push({lat: data.y[j][i], lng: data.x[j][i], count: ht});
+                    }
+                }
+            }
+            cfg.radius = rSize;
+            heatmapLayer.setData(waveColours);
+        }
+    }
+
+    function selectResolution(el) {
+        var txt2 = document.getElementById("res");
+        txt2.innerHTML = "Resolution: " + el.value;
+
+        // Erase arrow annotations on map
+        if (init) {
+            init = false;
+        } else {
+            num = waveArrows.length;
+            for (let i = 0; i < num; i++) {
+                waveArrows[i].remove(map);
+            }
+
+            // Erase heatmap
+            waveColours.data = [];
+            heatmapLayer.setData(waveColours);
+        }
+
+        console.log("Zoom current value = " + el.value);
+        loadData(el.value);
+    }
+
+    function updateZoomDisplay(e) {
+        txt.innerHTML = "Zoom value: " + map.getZoom();
+    }
+
+    updateZoomDisplay();
+    map.on("click", onMapClick);
+    map.on("zoomend", updateZoomDisplay);
+
+    function uploadFile() {
+        const fileInput = document.getElementById("fileInput");
+        const file = fileInput.files[0];
+        fileInput.files[0] = "";
+
+        if (file) {
+            console.log("Uploading file:", file.name);
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const fileData = event.target.result;
+                console.log("File data:", fileData);
+                datas.push(fileData);
+            };
+            const dropdownList = document.getElementById("filter");
+            const newOption = document.createElement("option");
+            filecount += 1;
+            newOption.text = filecount + file.name.substring(0, 3);
+            newOption.value = filecount;
+            dropdownList.add(newOption);
+
+            reader.readAsText(file);
+        }
+    }
+</script>
+
+<script>
+    const coord1 = [11, 150];
+    const coord2 = [15, 275];
+
+    const dict = {
+        "x": [
+            [10, 12, 14, 16],
+            [10, 12, 14, 16],
+            [10, 12, 14, 16]]
+        , "y": [
+            [100, 100, 100, 100],
+            [200, 200, 200, 200],
+            [300, 300, 300, 300]],
+        "waveHeight": [
+            [1, 2, 3, 4],
+            [3, 3, 3, 4],
+            [5, 4, 3, 4]
+        ]
+    };
+
+    let crossSectionLine = getCrossSection(dict, coord1, coord2);
+    // console.log(crossSectionLine)
+
+    new Chart("myChart", {
+        type: "line",
+        data: {
+            labels: crossSectionLine.data,
+            datasets: [{
+                data: crossSectionLine.pos,
+                borderColor: "blue",
+                fill: false
+            }]
+        },
+        options: {
+            legend: {display: false}
+        }
+    });
+</script>
+</body>
+</html>
