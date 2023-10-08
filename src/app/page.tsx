@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 
-import L, {LatLngBoundsExpression, TileLayerOptions} from "leaflet";
+import L, {LatLngBoundsExpression, TileLayer, TileLayerOptions} from "leaflet";
 import "leaflet-velocity/dist/leaflet-velocity";
 
 import React, {useEffect, useRef, useState} from "react";
@@ -32,7 +32,7 @@ export default function Page() {
                 // id: "mapbox/streets-v11",
                 id: "mapbox/dark-v11",
                 access_token: "pk.eyJ1IjoianVzdHVzaXAiLCJhIjoiY2xuZWEzZWplMGJ6cTJqbWs1b3F4Z2NueSJ9.gVm5YadStrOim4uYIFkU6Q",
-            }
+            } as TileLayerOptions
         );
 
         const velocityDataRes = await fetch("/data/output/wave_data_x1.grib.json");
@@ -121,7 +121,7 @@ export default function Page() {
                         continue;
 
                     const polygon = L.polygon([
-                        polygonArrowPoints([lat, lng], arrowSize * scaleFactor, dir)
+                        polygonArrowPoints([lat, lng], arrowSize * scaleFactor, dir) as any
                     ]);
                     waveArrows.push(polygon);
                     polygon.addTo(map);
@@ -164,7 +164,7 @@ export default function Page() {
                 edges = [];
             }
 
-            const vertex = new L.marker(e.latlng, {icon: greenIcon}).addTo(map);
+            const vertex = new L.Marker(e.latlng, {icon: greenIcon}).addTo(map);
             vertices.push(vertex);
 
             if (vertices.length > 1) {
