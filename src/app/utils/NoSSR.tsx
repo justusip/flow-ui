@@ -8,7 +8,7 @@ const NoSSR = (props: React.PropsWithChildren): React.ReactNode => {
 
     if (!isMounted)
         return <></>;
-    return props.children;
+    return <>{props.children}</>;
 };
 
 export default NoSSR;
