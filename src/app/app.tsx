@@ -107,20 +107,20 @@ export default function App() {
 
         // loadWaveData(13);
 
-        // map.on("movestart", e => {
-        //     map.removeLayer(velLayer);
-        // });
+        map.on("movestart", e => {
+            velLayer._clearWind();
+        });
         map.on("moveend", e => {
             velLayer._clearWind();
             // map.addLayer(velLayer);
         });
-        // map.on("zoomstart", e => {
-        //     map.removeLayer(velLayer);
-        // });
-        // map.on("zoomend", e => {
-        //     map.addLayer(velLayer);
-        //     const curZoomLevel = map.getZoom();
-        // });
+        map.on("zoomstart", e => {
+            velLayer._clearWind();
+        });
+        map.on("zoomend", e => {
+            velLayer._clearWind();
+            const curZoomLevel = map.getZoom();
+        });
 
         let vertices: L.Marker[] = [];
         let edges: L.Polyline[] = [];
