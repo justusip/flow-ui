@@ -10,6 +10,12 @@ import {polygonArrowPoints} from "@/app/utils/Arrows";
 
 
 export default function Page() {
+    const pinIcon = L.icon({
+        iconUrl: "pin.png",
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
+    });
+
     const mapContainer = useRef<HTMLDivElement | null>(null);
 
     let latCentre = 22.21997;
@@ -146,13 +152,7 @@ export default function Page() {
             const curZoomLevel = map.getZoom();
             console.log(curZoomLevel);
         });
-        var greenIcon = L.icon({
-            iconUrl: "pin.png",
-            shadowUrl: null,
 
-            iconSize: [10, 10], // size of the icon
-            iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
-        });
         let vertices: L.Marker[] = [];
         let edges: L.Polyline[] = [];
         map.on("click", e => {
@@ -165,7 +165,7 @@ export default function Page() {
                 edges = [];
             }
 
-            const vertex = new L.Marker(e.latlng, {icon: greenIcon}).addTo(map);
+            const vertex = new L.Marker(e.latlng, {icon: pinIcon}).addTo(map);
             vertices.push(vertex);
 
             if (vertices.length > 1) {

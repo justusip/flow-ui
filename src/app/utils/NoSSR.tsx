@@ -9,6 +9,9 @@ const NoSSR = (props: React.PropsWithChildren): React.ReactNode => {
         setIsMounted(true);
     }, []);
 
+    if(!window)
+        return <></>
+
     if (!isMounted)
         return <></>;
 
