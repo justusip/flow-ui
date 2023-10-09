@@ -2,10 +2,10 @@
 
 import "leaflet/dist/leaflet.css";
 
-import L, {LatLngBoundsExpression, TileLayer, TileLayerOptions} from "leaflet";
+import L from "leaflet";
 import "leaflet-velocity/dist/leaflet-velocity";
 
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef} from "react";
 import {polygonArrowPoints} from "@/app/utils/Arrows";
 
 
@@ -23,8 +23,9 @@ export default function Page() {
     useEffect(() => {
         if (!mapContainer.current)
             return;
-        onLoad();
+        onLoad().then();
     }, [mapContainer.current]);
+
     const onLoad = async () => {
         const tiles = L.tileLayer(
             "https://api.mapbox.com/styles/v1/{id}/tiles/256/{z}/{x}/{y}?access_token={access_token}",
@@ -32,7 +33,7 @@ export default function Page() {
                 // id: "mapbox/streets-v11",
                 id: "mapbox/dark-v11",
                 access_token: "pk.eyJ1IjoianVzdHVzaXAiLCJhIjoiY2xuZWEzZWplMGJ6cTJqbWs1b3F4Z2NueSJ9.gVm5YadStrOim4uYIFkU6Q",
-            } as TileLayerOptions
+            } as L.TileLayerOptions
         );
 
         const velocityDataRes = await fetch("/data/output/wave_data_x1.grib.json");
@@ -62,7 +63,7 @@ export default function Page() {
             velocityScale: .005
         });
 
-        const bounds: LatLngBoundsExpression = new L.LatLngBounds(
+        const bounds: L.LatLngBoundsExpression = new L.LatLngBounds(
             [
                 velocityData[0].header.la1,
                 velocityData[0].header.lo1,
