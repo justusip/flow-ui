@@ -7,8 +7,8 @@ import React from "react";
 const inter = Inter({subsets: ["latin"]});
 
 export const metadata: Metadata = {
-    title: "Surf UI",
-    description: "Surf UI",
+    title: "Flow UI",
+    description: "Flow UI",
 };
 
 export default function RootLayout({children}: {
